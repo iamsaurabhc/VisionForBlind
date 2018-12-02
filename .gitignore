@@ -4,4 +4,6 @@ features.pkl
 Flickr8k_Dataset.zip
 Flickr8k_text.zip
 imageDescriptions.txt
-
+*.h5
+descriptions.txt
+tokenizer.pkl
