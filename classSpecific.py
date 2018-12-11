@@ -24,6 +24,7 @@ from keras.models import load_model
 import string
 from nltk.translate.bleu_score import corpus_bleu
 from numpy import argmax
+import os.path
 
 class FeatureExtraction:
     def __init__(self, photoDir, textDir):
@@ -67,7 +68,7 @@ class FeatureExtraction:
         # save to file
         dump(features, open('features.pkl', 'wb'))        
 
-photoDir = '../train2014/'
+photoDir = os.path.abspath(os.path.join('../train2014/', os.pardir))
 textDir = '../annotations/captions_train2014.json'
 
 FeatureExtraction(photoDir, textDir).run()
