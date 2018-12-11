@@ -67,7 +67,7 @@ class FeatureExtraction:
         # save to file
         dump(features, open('features.pkl', 'wb'))        
 
-photoDir = '../train2014'
+photoDir = '../train2014/'
 textDir = '../annotations/captions_train2014.json'
 
 FeatureExtraction(photoDir, textDir).run()
