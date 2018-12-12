@@ -85,7 +85,7 @@ class FeatureExtraction:
         for annotations in doc['annotations']:
             print('anno::',annotations)
             # take the first token as the image id, the rest as the description
-            image_id, image_desc = annotations['image_id'], annotations['captions']
+            image_id, image_desc = annotations['image_id'], annotations['caption']
             # create the list if needed
             if image_id not in mapping:
                 mapping[image_id] = list()
