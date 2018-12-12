@@ -74,16 +74,13 @@ class FeatureExtraction:
         # open the file as read only
         with open(self.annotationJson, 'r') as fp:
             text = json.load(fp)
-
         return text
-
 
     # extract descriptions for images
     def loadDescriptions(self, doc):
         mapping = dict()
         # process lines
         for annotations in doc['annotations']:
-            print('anno::',annotations)
             # take the first token as the image id, the rest as the description
             image_id, image_desc = annotations['image_id'], annotations['caption']
             # create the list if needed
@@ -143,12 +140,134 @@ class FeatureExtraction:
         vocabulary = self.toVocabulary(descriptions)
         print('Vocabulary Size: %d' % len(vocabulary))
         # save to file
-        self.saveDescriptions(descriptions, 'descriptions.txt')   
+        self.saveDescriptions(descriptions, 'descriptions.txt')  
 
+    # load a pre-defined list of photo identifiers
+    def loadSet(self):
+        doc = self.loadAnnotationDoc(self.annotationJson)
+        dataset = list()
+        # process line by line
+        for annotation in doc['annotations']:
+            # get the image identifier
+            identifier = annotation['image_id']
+            dataset.append(identifier)
+        return set(dataset) 
+    
+    def loadDocument(self, docName):
+        # open the file as read only
+        file = open(docName, 'r')
+        # read all text
+        text = file.read()
+        # close the file
+        file.close()
+        return text
+
+    # load clean descriptions into memory
+    def loadCleanDescriptions(self, filename, dataset):
+        # load document
+        doc = self.loadDocument(filename)
+        descriptions = dict()
+        for line in doc.split('\n'):
+            # split line by white space
+            tokens = line.split()
+            # split id from description
+            image_id, image_desc = tokens[0], tokens[1:]
+            # skip images not in the set
+            if image_id in dataset:
+                # create list
+                if image_id not in descriptions:
+                    descriptions[image_id] = list()
+                # wrap description in tokens
+                desc = 'startseq ' + ' '.join(image_desc) + ' endseq'
+                # store
+                descriptions[image_id].append(desc)
+        return descriptions
+    
+    # load photo features
+    def loadPhotoFeatures(self, filename, dataset):
+        # load all features
+        all_features = load(open(filename, 'rb'))
+        # filter features
+        features = {k: all_features[k] for k in dataset}
+        return features
+
+    # covert a dictionary of clean descriptions to a list of descriptions
+    def toLines(self, descriptions):
+        all_desc = list()
+        for key in descriptions.keys():
+            [all_desc.append(d) for d in descriptions[key]]
+        return all_desc
+
+    # fit a tokenizer given caption descriptions
+    def createTokenizer(self,descriptions):
+        lines = self.toLines(descriptions)
+        tokenizer = Tokenizer()
+        tokenizer.fit_on_texts(lines)
+        return tokenizer
+
+    # create sequences of images, input sequences and output words for an image
+    def createSequences(self, tokenizer, max_length, descriptions, photos):
+        X1, X2, y = list(), list(), list()
+        # walk through each image identifier
+        for key, desc_list in descriptions.items():
+            # walk through each description for the image
+            for desc in desc_list:
+                # encode the sequence
+                seq = tokenizer.texts_to_sequences([desc])[0]
+                # split one sequence into multiple X,y pairs
+                for i in range(1, len(seq)):
+                    # split into input and output pair
+                    in_seq, out_seq = seq[:i], seq[i]
+                    # pad input sequence
+                    in_seq = pad_sequences([in_seq], maxlen=max_length)[0]
+                    # encode output sequence
+                    out_seq = to_categorical([out_seq], num_classes=vocab_size)[0]
+                    # store
+                    X1.append(photos[key][0])
+                    X2.append(in_seq)
+                    y.append(out_seq)
+        return array(X1), array(X2), array(y)
+
+    def prepareTrainData(self):
+        # load training dataset (83K)
+        train = self.loadSet()
+        print('Dataset: %d' % len(train))
+        # descriptions
+        train_descriptions = self.loadCleanDescriptions('descriptions.txt', train)
+        print('Descriptions: train=%d' % len(train_descriptions))
+        # photo features
+        train_features = self.loadPhotoFeatures('features.pkl', train)
+        print('Photos: train=%d' % len(train_features))
+        # prepare tokenizer
+        tokenizer = self.createTokenizer(train_descriptions)
+        # save the tokenizer
+        dump(tokenizer, open('tokenizer.pkl', 'wb'))
+        vocab_size = len(tokenizer.word_index) + 1
+        print('Vocabulary Size: %d' % vocab_size)
+        # determine the maximum sequence length
+        max_length = max_length(train_descriptions)
+        print('Description Length: %d' % max_length)
+        # prepare sequences
+        X1train, X2train, ytrain = self.createSequences(tokenizer, max_length, train_descriptions, train_features)
+    
+    def prepareTestData(self):
+        # dev dataset
+        # load test set
+        self.annotationJson = 'annotations/captions_train2014.json'
+        test = self.loadSet()
+        print('Dataset: %d' % len(test))
+        # descriptions
+        test_descriptions = self.loadCleanDescriptions('descriptions.txt', test)
+        print('Descriptions: test=%d' % len(test_descriptions))
+        # photo features
+        test_features = load_photo_features('features.pkl', test)
+        print('Photos: test=%d' % len(test_features))
+        # prepare sequences
+        X1test, X2test, ytest = create_sequences(tokenizer, max_length, test_descriptions, test_features)
 
     def run(self):
         #self.extractPicFeatures() # DONE
-        self.extractTextFeatures()
+        #self.extractTextFeatures() # DONE
 
 photoDir = 'train2014'
 textDir = 'annotations/captions_train2014.json'
