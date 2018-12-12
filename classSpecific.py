@@ -70,7 +70,7 @@ class FeatureExtraction:
         dump(features, open('features.pkl', 'wb'))   
     
     # load doc into memory
-    def loadAnnotationDoc(self, filename):
+    def loadAnnotationDoc(self):
         # open the file as read only
         with open(self.annotationJson, 'r') as fp:
             text = json.load(fp)
