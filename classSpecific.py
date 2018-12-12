@@ -25,14 +25,15 @@ import string
 from nltk.translate.bleu_score import corpus_bleu
 from numpy import argmax
 import os.path
+import json
 
 class FeatureExtraction:
     def __init__(self, photoDir, textDir):
         self.photoDir = photoDir
-        self.textDir = textDir
+        self.annotationJson = textDir
 
     # extract features from each photo in the directory
-    def extractFeatures(self):
+    def extractPhotoFeatures(self):
         # load the model
         model = VGG16()
         # re-structure the model
@@ -61,12 +62,92 @@ class FeatureExtraction:
             print('>%s' % name)
         return features
 
-    def run(self):
+    def extractPicFeatures(self):
         # extract features from all images
-        features = self.extractFeatures()
+        features = self.extractPhotoFeatures()
         print('Extracted Features: %d' % len(features))
         # save to file
-        dump(features, open('features.pkl', 'wb'))        
+        dump(features, open('features.pkl', 'wb'))   
+    
+    # load doc into memory
+    def loadAnnotationDoc(self, filename):
+        # open the file as read only
+        with open(self.annotationJson, 'r') as fp:
+            text = json.load(fp)
+
+        return text
+
+
+    # extract descriptions for images
+    def loadDescriptions(self, doc):
+        mapping = dict()
+        # process lines
+        for annotations in doc['annotations']:
+            # take the first token as the image id, the rest as the description
+            image_id, image_desc = annotations['image_id'], annotations['captions']
+            # create the list if needed
+            if image_id not in mapping:
+                mapping[image_id] = list()
+            # store description
+            mapping[image_id].append(image_desc)
+        return mapping
+
+    def cleanDescriptions(self,descriptions):
+        # prepare translation table for removing punctuation
+        table = str.maketrans('', '', string.punctuation)
+        for key, desc_list in descriptions.items():
+            for i in range(len(desc_list)):
+                desc = desc_list[i]
+                # tokenize
+                desc = desc.split()
+                # convert to lower case
+                desc = [word.lower() for word in desc]
+                # remove punctuation from each token
+                desc = [w.translate(table) for w in desc]
+                # remove hanging 's' and 'a'
+                desc = [word for word in desc if len(word)>1]
+                # remove tokens with numbers in them
+                desc = [word for word in desc if word.isalpha()]
+                # store as string
+                desc_list[i] =  ' '.join(desc)
+
+    # convert the loaded descriptions into a vocabulary of words
+    def toVocabulary(self, descriptions):
+        # build a list of all description strings
+        all_desc = set()
+        for key in descriptions.keys():
+            [all_desc.update(d.split()) for d in descriptions[key]]
+        return all_desc    
+
+    # save descriptions to file, one per line
+    def saveDescriptions(self, descriptions, filename):
+        lines = list()
+        for key, desc_list in descriptions.items():
+            for desc in desc_list:
+                lines.append(key + ' ' + desc)
+        data = '\n'.join(lines)
+        file = open(filename, 'w')
+        file.write(data)
+        file.close()
+
+    def extractTextFeatures(self):
+        # load annotations
+        doc = self.loadAnnotationDoc()
+        # parse descriptions
+        descriptions = self.loadDescriptions(doc)
+        print('Loaded: %d ' % len(descriptions))
+        # clean descriptions
+        self.cleanDescriptions(descriptions)
+        # summarize vocabulary
+        vocabulary = self.toVocabulary(descriptions)
+        print('Vocabulary Size: %d' % len(vocabulary))
+        # save to file
+        self.saveDescriptions(descriptions, 'descriptions.txt')   
+
+
+    def run(self):
+        #self.extractPicFeatures() # DONE
+        self.extractTextFeatures()
 
 photoDir = 'train2014'
 textDir = 'annotations/captions_train2014.json'
