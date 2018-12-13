@@ -1,7 +1,7 @@
 from numpy import array
 import numpy as np
 from pickle import load
-from keras.preprocessing.text import Tokenizer
+from keras.preprocessing.text import self.tokenizer
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils import to_categorical
 from keras.utils import plot_model
@@ -31,6 +31,10 @@ class FeatureExtraction:
     def __init__(self, photoDir, textDir):
         self.photoDir = photoDir
         self.annotationJson = textDir
+        self.self.tokenizer = None
+        self.max_length = None
+        self.vocab_size = None
+        self.model = None
 
     # extract features from each photo in the directory
     def extractPhotoFeatures(self):
@@ -162,6 +166,11 @@ class FeatureExtraction:
         file.close()
         return text
 
+    # calculate the length of the description with the most words
+    def maxLength(self, descriptions):
+        lines = self.toLines(descriptions)
+        return max(len(d.split()) for d in lines)
+
     # load clean descriptions into memory
     def loadCleanDescriptions(self, filename, dataset):
         # load document
@@ -198,12 +207,12 @@ class FeatureExtraction:
             [all_desc.append(d) for d in descriptions[key]]
         return all_desc
 
-    # fit a tokenizer given caption descriptions
+    # fit a self.tokenizer given caption descriptions
     def createTokenizer(self,descriptions):
         lines = self.toLines(descriptions)
-        tokenizer = Tokenizer()
-        tokenizer.fit_on_texts(lines)
-        return tokenizer
+        self.tokenizer = self.tokenizer()
+        self.tokenizer.fit_on_texts(lines)
+        return self.tokenizer
 
     # create sequences of images, input sequences and output words for an image
     def createSequences(self, tokenizer, max_length, descriptions, photos):
@@ -213,20 +222,43 @@ class FeatureExtraction:
             # walk through each description for the image
             for desc in desc_list:
                 # encode the sequence
-                seq = tokenizer.texts_to_sequences([desc])[0]
+                seq = self.tokenizer.texts_to_sequences([desc])[0]
                 # split one sequence into multiple X,y pairs
                 for i in range(1, len(seq)):
                     # split into input and output pair
                     in_seq, out_seq = seq[:i], seq[i]
                     # pad input sequence
-                    in_seq = pad_sequences([in_seq], maxlen=max_length)[0]
+                    in_seq = pad_sequences([in_seq], maxlen=self.max_length)[0]
                     # encode output sequence
-                    out_seq = to_categorical([out_seq], num_classes=vocab_size)[0]
+                    out_seq = to_categorical([out_seq], num_classes=self.vocab_size)[0]
                     # store
                     X1.append(photos[key][0])
                     X2.append(in_seq)
                     y.append(out_seq)
         return array(X1), array(X2), array(y)
+
+    # define the captioning model
+    def defineModel(self):
+        # feature extractor model
+        inputs1 = Input(shape=(4096,))
+        fe1 = Dropout(0.5)(inputs1)
+        fe2 = Dense(256, activation='relu')(fe1)
+        # sequence model
+        inputs2 = Input(shape=(self.max_length,))
+        se1 = Embedding(self.vocab_size, 256, mask_zero=True)(inputs2)
+        se2 = Dropout(0.5)(se1)
+        se3 = LSTM(256)(se2)
+        # decoder model
+        decoder1 = add([fe2, se3])
+        decoder2 = Dense(256, activation='relu')(decoder1)
+        outputs = Dense(self.vocab_size, activation='softmax')(decoder2)
+        # tie it together [image, seq] [word]
+        model = Model(inputs=[inputs1, inputs2], outputs=outputs)
+        model.compile(loss='categorical_crossentropy', optimizer='adam')
+        # summarize model
+        print(model.summary())
+        plot_model(model, to_file='model.png', show_shapes=True)
+        return model
 
     def prepareTrainData(self):
         # load training dataset (83K)
@@ -239,16 +271,17 @@ class FeatureExtraction:
         train_features = self.loadPhotoFeatures('features.pkl', train)
         print('Photos: train=%d' % len(train_features))
         # prepare tokenizer
-        tokenizer = self.createTokenizer(train_descriptions)
+        self.tokenizer = self.createTokenizer(train_descriptions)
         # save the tokenizer
-        dump(tokenizer, open('tokenizer.pkl', 'wb'))
-        vocab_size = len(tokenizer.word_index) + 1
-        print('Vocabulary Size: %d' % vocab_size)
+        dump(self.tokenizer, open('tokenizer.pkl', 'wb'))
+        self.vocab_size = len(self.tokenizer.word_index) + 1
+        print('Vocabulary Size: %d' % self.vocab_size)
         # determine the maximum sequence length
-        max_length = max_length(train_descriptions)
-        print('Description Length: %d' % max_length)
+        self.max_length = self.maxLength(train_descriptions)
+        print('Description Length: %d' % self.max_length)
         # prepare sequences
-        X1train, X2train, ytrain = self.createSequences(tokenizer, max_length, train_descriptions, train_features)
+        X1train, X2train, ytrain = self.createSequences(self.tokenizer, self.max_length, train_descriptions, train_features)
+        return X1train, X2train, ytrain
     
     def prepareTestData(self):
         # dev dataset
@@ -260,14 +293,29 @@ class FeatureExtraction:
         test_descriptions = self.loadCleanDescriptions('descriptions.txt', test)
         print('Descriptions: test=%d' % len(test_descriptions))
         # photo features
-        test_features = load_photo_features('features.pkl', test)
+        test_features = self.loadPhotoFeatures('features.pkl', test)
         print('Photos: test=%d' % len(test_features))
         # prepare sequences
-        X1test, X2test, ytest = create_sequences(tokenizer, max_length, test_descriptions, test_features)
+        X1test, X2test, ytest = self.createTokenizer(self.tokenizer, self.max_length, test_descriptions, test_features)
+        return X1test, X2test, ytest
+
+    def fitModel(self):
+        X1train, X2train, ytrain = self.prepareTrainData()
+        X1test, X2test, ytest = self.prepareTestData()
+        # fit model
+        # define the model
+        self.model = self.defineModel()
+        # define checkpoint callback
+        filepath = 'model-ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}.h5'
+        checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
+        # fit model
+        self.model.fit([X1train, X2train], ytrain, epochs=20, verbose=2, callbacks=[checkpoint], validation_data=([X1test, X2test], ytest))
+
 
     def run(self):
         #self.extractPicFeatures() # DONE
         #self.extractTextFeatures() # DONE
+        self.fitModel()
 
 photoDir = 'train2014'
 textDir = 'annotations/captions_train2014.json'
