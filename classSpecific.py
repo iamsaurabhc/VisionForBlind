@@ -148,7 +148,7 @@ class FeatureExtraction:
 
     # load a pre-defined list of photo identifiers
     def loadSet(self):
-        doc = self.loadAnnotationDoc(self.annotationJson)
+        doc = self.loadAnnotationDoc()
         dataset = list()
         # process line by line
         for annotation in doc['annotations']:
