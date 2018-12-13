@@ -175,12 +175,14 @@ class FeatureExtraction:
     def loadCleanDescriptions(self, filename, dataset):
         # load document
         doc = self.loadDocument(filename)
+        print('dataset::\n\n',dataset,'\n\n')
         descriptions = dict()
         for line in doc.split('\n'):
             # split line by white space
             tokens = line.split()
             # split id from description
             image_id, image_desc = tokens[0], tokens[1]
+            print('id:',image_id,'desc:',image_desc)
             # skip images not in the set
             if image_id in dataset:
                 # create list
