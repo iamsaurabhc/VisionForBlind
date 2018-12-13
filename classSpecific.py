@@ -177,17 +177,15 @@ class FeatureExtraction:
         # load document
         pdb.set_trace()
         doc = self.loadDocument(filename)
-        print('document',doc)
-        print('dataset::\n\n',dataset,'\n\n')
         descriptions = dict()
         for line in doc.split('\n'):
             # split line by white space
             tokens = line.split()
             # split id from description
             image_id, image_desc = tokens[0], tokens[1]
-            print('id:',image_id,'desc:',image_desc)
             # skip images not in the set
             if image_id in dataset:
+                print('id:',image_id,'desc:',image_desc)
                 # create list
                 if image_id not in descriptions:
                     descriptions[image_id] = list()
