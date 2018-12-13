@@ -61,7 +61,8 @@ class FeatureExtraction:
             # get features
             feature = model.predict(image, verbose=0)
             # get image id
-            image_id = int(name.split('_')[2])
+            img_name = name.split('.')[0]
+            image_id = int(img_name.split('_')[2])
             # store feature
             features[image_id] = feature
             print('>%s' % name)
