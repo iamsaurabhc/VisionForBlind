@@ -26,6 +26,7 @@ from nltk.translate.bleu_score import corpus_bleu
 from numpy import argmax
 import os.path
 import json
+import pdb
 
 class FeatureExtraction:
     def __init__(self, photoDir, textDir):
@@ -159,11 +160,11 @@ class FeatureExtraction:
     
     def loadDocument(self, docName):
         # open the file as read only
-        file = open(docName, 'r')
+        file_ = open(docName, 'r')
         # read all text
-        text = file.read()
+        text = file_.read()
         # close the file
-        file.close()
+        file_.close()
         return text
 
     # calculate the length of the description with the most words
@@ -174,7 +175,9 @@ class FeatureExtraction:
     # load clean descriptions into memory
     def loadCleanDescriptions(self, filename, dataset):
         # load document
+        pdb.set_trace()
         doc = self.loadDocument(filename)
+        print('document',doc)
         print('dataset::\n\n',dataset,'\n\n')
         descriptions = dict()
         for line in doc.split('\n'):
@@ -186,10 +189,12 @@ class FeatureExtraction:
             # skip images not in the set
             if image_id in dataset:
                 # create list
-                # wrap description in tokens
-                desc = 'startseq ' + image_desc + ' endseq'
-                # store
-                descriptions[image_id].append(desc)
+                if image_id not in descriptions:
+                    descriptions[image_id] = list()
+            # wrap description in tokens
+            desc = 'startseq ' + ' '.join(image_desc) + ' endseq'
+            # store
+            descriptions[image_id].append(desc)
         return descriptions
     
     # load photo features
