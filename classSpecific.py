@@ -175,7 +175,6 @@ class FeatureExtraction:
     # load clean descriptions into memory
     def loadCleanDescriptions(self, filename, dataset):
         # load document
-        pdb.set_trace()
         doc = self.loadDocument(filename)
         descriptions = dict()
         for line in doc.split('\n'):
@@ -189,10 +188,10 @@ class FeatureExtraction:
                 # create list
                 if image_id not in descriptions:
                     descriptions[image_id] = list()
-            # wrap description in tokens
-            desc = 'startseq ' + ' '.join(image_desc) + ' endseq'
-            # store
-            descriptions[image_id].append(desc)
+                # wrap description in tokens
+                desc = 'startseq ' + ' '.join(image_desc) + ' endseq'
+                # store
+                descriptions[image_id].append(desc)
         return descriptions
     
     # load photo features
