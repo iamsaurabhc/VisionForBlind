@@ -61,7 +61,7 @@ class FeatureExtraction:
             # get features
             feature = model.predict(image, verbose=0)
             # get image id
-            image_id = name.split('.')[0]
+            image_id = int(name.split('_')[2])
             # store feature
             features[image_id] = feature
             print('>%s' % name)
@@ -181,7 +181,7 @@ class FeatureExtraction:
             # split line by white space
             tokens = line.split()
             # split id from description
-            image_id, image_desc = tokens[0], tokens[1]
+            image_id, image_desc = tokens[0], tokens[1:]
             # skip images not in the set
             if image_id in dataset:
                 print('id:',image_id,'desc:',image_desc)
@@ -315,8 +315,8 @@ class FeatureExtraction:
 
 
     def run(self):
-        #self.extractPicFeatures() # DONE
-        #self.extractTextFeatures() # DONE
+        self.extractPicFeatures()
+        self.extractTextFeatures()
         self.fitModel()
 
 photoDir = 'train2014'
