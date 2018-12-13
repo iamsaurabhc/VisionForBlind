@@ -1,7 +1,7 @@
 from numpy import array
 import numpy as np
 from pickle import load
-from keras.preprocessing.text import tokenizer
+from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils import to_categorical
 from keras.utils import plot_model
@@ -31,7 +31,7 @@ class FeatureExtraction:
     def __init__(self, photoDir, textDir):
         self.photoDir = photoDir
         self.annotationJson = textDir
-        self.self.tokenizer = None
+        self.tokenizer = None
         self.max_length = None
         self.vocab_size = None
         self.model = None
@@ -210,7 +210,7 @@ class FeatureExtraction:
     # fit a self.tokenizer given caption descriptions
     def createTokenizer(self,descriptions):
         lines = self.toLines(descriptions)
-        self.tokenizer = self.tokenizer()
+        self.tokenizer = Tokenizer()
         self.tokenizer.fit_on_texts(lines)
         return self.tokenizer
 
