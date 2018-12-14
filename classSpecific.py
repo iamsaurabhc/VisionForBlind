@@ -325,8 +325,8 @@ class FeatureExtraction:
 
 
     def run(self):
-        self.extractPicFeatures()
-        self.extractTextFeatures()
+        #self.extractPicFeatures()
+        #self.extractTextFeatures()
         self.fitModel()
 
 photoDir = 'train2014'
