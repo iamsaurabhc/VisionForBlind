@@ -177,11 +177,8 @@ class FeatureExtraction:
     def loadCleanDescriptions(self, filename, dataset):
         # load document
         doc = self.loadDocument(filename)
-        print('train1:5\n',list(dataset)[0:5])
-        print('train1 type\n',type(list(dataset)[0]))
         counter = 0
         descriptions = dict()
-        print('doc')
         for line in doc.split('\n'):
             if counter<5:
                 print(line)
@@ -190,13 +187,8 @@ class FeatureExtraction:
             tokens = line.split()
             # split id from description
             image_id, image_desc = int(tokens[0]), tokens[1:]
-            if counter<5:
-                print('image_id:',image_id)
-                print('image_id type:',type(image_id))
-                print('image_desc:',image_desc)
             # skip images not in the set
             if image_id in dataset:
-                print('id:',image_id,'desc:',image_desc)
                 # create list
                 if image_id not in descriptions:
                     descriptions[image_id] = list()
@@ -302,7 +294,7 @@ class FeatureExtraction:
         # load test set
         self.annotationJson = 'annotations/captions_train2014.json'
         test = self.loadSet()
-        print('Dataset: %d' % len(test))
+        print('Test Dataset: %d' % len(test))
         # descriptions
         test_descriptions = self.loadCleanDescriptions('descriptions.txt', test)
         print('Descriptions: test=%d' % len(test_descriptions))
@@ -310,7 +302,7 @@ class FeatureExtraction:
         test_features = self.loadPhotoFeatures('features.pkl', test)
         print('Photos: test=%d' % len(test_features))
         # prepare sequences
-        X1test, X2test, ytest = self.createTokenizer(self.tokenizer, self.max_length, test_descriptions, test_features)
+        X1test, X2test, ytest = self.createSequences(self.tokenizer, self.max_length, test_descriptions, test_features)
         return X1test, X2test, ytest
 
     def fitModel(self):
