@@ -193,7 +193,7 @@ class FeatureExtraction:
                 print('image_id:',image_id)
                 print('image_desc:',image_desc)
             # skip images not in the set
-            if image_id in dataset:
+            if int(image_id) in dataset:
                 print('id:',image_id,'desc:',image_desc)
                 # create list
                 if image_id not in descriptions:
