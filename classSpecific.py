@@ -226,6 +226,7 @@ class FeatureExtraction:
         # walk through each image identifier
         for key, desc_list in descriptions.items():
             # walk through each description for the image
+            print('done:',key)
             for desc in desc_list:
                 # encode the sequence
                 seq = self.tokenizer.texts_to_sequences([desc])[0]
