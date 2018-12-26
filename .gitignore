@@ -7,3 +7,4 @@ imageDescriptions.txt
 *.h5
 descriptions.txt
 tokenizer.pkl
+.vscode/
