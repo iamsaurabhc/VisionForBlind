@@ -216,7 +216,7 @@ class FeatureExtraction:
         # load all features
         all_features = load(open(filename, 'rb'))
         # filter features
-        features = {k: all_features[k] for k in dataset}
+        features = {k: all_features[k] for k in dataset if all_features[k]}
         return features
 
     # covert a dictionary of clean descriptions to a list of descriptions
@@ -334,11 +334,11 @@ class FeatureExtraction:
 
     def run(self):
         starttime = time.time()
-        self.extractPicFeatures()
-        print('Time taken for extractPicFeatures: ', time.time()-starttime)
-        midtime = time.time()
-        self.extractTextFeatures()
-        print('Time taken for extractTextFeatures: ', time.time() - midtime)
+        #self.extractPicFeatures()
+        #print('Time taken for extractPicFeatures: ', time.time()-starttime)
+        #midtime = time.time()
+        #self.extractTextFeatures()
+        #print('Time taken for extractTextFeatures: ', time.time() - midtime)
         finaltime = time.time()
         self.fitModel()
         print('Time taken for fitModel: ', time.time() - finaltime)
