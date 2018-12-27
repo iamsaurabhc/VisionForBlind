@@ -333,7 +333,7 @@ class FeatureExtraction:
 
 
     def run(self):
-        self.extractPicFeatures()
+        #self.extractPicFeatures()
         self.extractTextFeatures()
         self.fitModel()
 
