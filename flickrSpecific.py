@@ -90,8 +90,8 @@ class FeatureExtraction:
         # process lines
         for annotations in doc.split('\n'):
             # split line by white space
-            tokens = line.split()
-            if len(line) < 2:
+            tokens = annotations.split()
+            if len(annotations) < 2:
                 continue
             # take the first token as the image id, the rest as the description
             image_id, image_desc = tokens[0], tokens[1:]
