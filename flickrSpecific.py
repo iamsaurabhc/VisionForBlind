@@ -27,6 +27,7 @@ from numpy import argmax
 import os.path
 import json
 import pdb
+import time
 
 class FeatureExtraction:
     def __init__(self, photoDir, textDir):
@@ -64,7 +65,6 @@ class FeatureExtraction:
             image_id = name.split('.')[0]
             # store feature
             features[image_id] = feature
-            print('>%s' % name)
         return features
 
     def extractPicFeatures(self):
@@ -333,9 +333,16 @@ class FeatureExtraction:
 
 
     def run(self):
-        #self.extractPicFeatures()
+        starttime = time.time()
+        self.extractPicFeatures()
+        print('Time taken for extractPicFeatures: ', time.time()-starttime)
+        midtime = time.time()
         self.extractTextFeatures()
+        print('Time taken for extractTextFeatures: ', time.time() - midtime)
+        finaltime = time.time()
         self.fitModel()
+        print('Time taken for fitModel: ', time.time() - finaltime)
+        print('Total time taken to run all methods: ', time.time() - starttime)
 
 # extract features from all images
 photoDir = 'Flicker8k_Dataset/'
