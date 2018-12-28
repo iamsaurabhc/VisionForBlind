@@ -301,8 +301,8 @@ class FeatureExtraction:
         print('Description Length: %d' % self.max_length)
         # prepare sequences
         X1train, X2train, ytrain = self.createSequences(self.tokenizer, self.max_length, train_descriptions, train_features)
-        return sparse.csr_matrix((X1train), sparse.csr_matrix(X2train), sparse.csr_matrix(ytrain)
-    
+        return sparse.csr_matrix(X1train), sparse.csr_matrix(X2train), sparse.csr_matrix(ytrain)
+
     def prepareTestData(self):
         # dev dataset
         # load test set
