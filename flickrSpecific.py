@@ -29,6 +29,7 @@ import json
 import pdb
 import time
 from scipy import sparse
+from sklearn.model_selection import train_test_split
 
 class FeatureExtraction:
     def __init__(self, photoDir, textDir):
@@ -318,11 +319,15 @@ class FeatureExtraction:
         # prepare sequences
         X1test, X2test, ytest = self.createSequences(self.tokenizer, self.max_length, test_descriptions, test_features)
         return sparse.csr_matrix(X1test), sparse.csr_matrix(X2test), sparse.csr_matrix(ytest)
+    
+    def testTrainSplit(self, X, y):
+        return train_test_split(X, y, test_size=0.15, random_state=42)
 
     def fitModel(self):
         print('model fit starts')
         X1train, X2train, ytrain = self.prepareTrainData()
-        X1test, X2test, ytest = self.prepareTestData()
+        X_train, X_test, y_train, y_test = self.testTrainSplit([X1train, X2train], ytrain)
+        #X1test, X2test, ytest = self.prepareTestData()
         # fit model
         # define the model
         self.model = self.defineModel()
@@ -330,7 +335,7 @@ class FeatureExtraction:
         filepath = 'model-ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}.h5'
         checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
         # fit model
-        self.model.fit([X1train, X2train], ytrain, epochs=20, verbose=2, callbacks=[checkpoint], validation_data=([X1test, X2test], ytest))
+        self.model.fit(X_train, y_train, epochs=20, verbose=2, callbacks=[checkpoint], validation_data=(X_test, y_test))
         print('model fit end')
 
 
