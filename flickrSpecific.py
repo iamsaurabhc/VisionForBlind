@@ -322,6 +322,7 @@ class FeatureExtraction:
         return X1test, X2test, ytest
 
     def fitModel(self):
+        print('model fit starts')
         X1train, X2train, ytrain = self.prepareTrainData()
         X1test, X2test, ytest = self.prepareTestData()
         # fit model
@@ -332,6 +333,7 @@ class FeatureExtraction:
         checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
         # fit model
         self.model.fit([X1train, X2train], ytrain, epochs=20, verbose=2, callbacks=[checkpoint], validation_data=([X1test, X2test], ytest))
+        print('model fit end')
 
 
     def run(self):
