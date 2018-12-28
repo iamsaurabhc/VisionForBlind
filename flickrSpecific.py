@@ -321,12 +321,14 @@ class FeatureExtraction:
         return sparse.csr_matrix(X1test), sparse.csr_matrix(X2test), sparse.csr_matrix(ytest)
     
     def testTrainSplit(self, X, y):
-        return train_test_split(X, y, test_size=0.15, random_state=42)
+        return train_test_split(X, y, test_size=0.15, shuffle=False)
 
     def fitModel(self):
         print('model fit starts')
-        X1train, X2train, ytrain = self.prepareTrainData()
-        X_train, X_test, y_train, y_test = self.testTrainSplit([X1train, X2train], ytrain)
+        X1, X2, y = self.prepareTrainData()
+        X1_train, X1_test, y_train,y_test = self.testTrainSplit(X1, y) 
+        X2_train, X2_test, y_train,y_test = self.testTrainSplit(X2, y)
+
         #X1test, X2test, ytest = self.prepareTestData()
         # fit model
         # define the model
@@ -335,7 +337,7 @@ class FeatureExtraction:
         filepath = 'model-ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}.h5'
         checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
         # fit model
-        self.model.fit(X_train, y_train, epochs=20, verbose=2, callbacks=[checkpoint], validation_data=(X_test, y_test))
+        self.model.fit([X1_train, X2_train], y_train, epochs=20, verbose=2, callbacks=[checkpoint], validation_data=([X1_test, X2_test], y_test))
         print('model fit end')
 
 
