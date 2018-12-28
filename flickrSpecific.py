@@ -28,6 +28,7 @@ import os.path
 import json
 import pdb
 import time
+from scipy import sparse
 
 class FeatureExtraction:
     def __init__(self, photoDir, textDir):
@@ -300,7 +301,7 @@ class FeatureExtraction:
         print('Description Length: %d' % self.max_length)
         # prepare sequences
         X1train, X2train, ytrain = self.createSequences(self.tokenizer, self.max_length, train_descriptions, train_features)
-        return X1train, X2train, ytrain
+        return sparse.csr_matrix((X1train), sparse.csr_matrix(X2train), sparse.csr_matrix(ytrain)
     
     def prepareTestData(self):
         # dev dataset
@@ -316,7 +317,7 @@ class FeatureExtraction:
         print('Photos: test=%d' % len(test_features))
         # prepare sequences
         X1test, X2test, ytest = self.createSequences(self.tokenizer, self.max_length, test_descriptions, test_features)
-        return X1test, X2test, ytest
+        return sparse.csr_matrix(X1test), sparse.csr_matrix(X2test), sparse.csr_matrix(ytest)
 
     def fitModel(self):
         print('model fit starts')
