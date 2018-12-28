@@ -257,7 +257,7 @@ class FeatureExtraction:
                         X1.append(photos[key][0])
                         X2.append(in_seq)
                         y.append(out_seq)
-        return array(X1), array(X2), array(y)
+        return X1,X2,y
 
     # define the captioning model
     def defineModel(self):
@@ -308,7 +308,7 @@ class FeatureExtraction:
     def prepareTestData(self):
         # dev dataset
         # load test set
-        self.annotatedText = 'annotations/captions_train2014.json'
+        self.annotatedText = 'Flickr8k_text/Flickr8k.token.txt'
         test = self.loadSet()
         print('Test Dataset: %d' % len(test))
         # descriptions
