@@ -277,9 +277,6 @@ class FeatureExtraction:
         # tie it together [image, seq] [word]
         model = Model(inputs=[inputs1, inputs2], outputs=outputs)
         model.compile(loss='categorical_crossentropy', optimizer='adam')
-        # summarize model
-        print(model.summary())
-        plot_model(model, to_file='model.png', show_shapes=True)
         return model
 
     def prepareTrainData(self):
