@@ -199,6 +199,8 @@ class FeatureExtraction:
             # split line by white space
             tokens = line.split()
             # split id from description
+            if len(tokens) == 0:
+                continue
             image_id, image_desc = tokens[0], tokens[1:]
             # skip images not in the set
             if image_id in dataset:
@@ -216,7 +218,7 @@ class FeatureExtraction:
         # load all features
         all_features = load(open(filename, 'rb'))
         # filter features
-        features = {k: all_features[k] for k in dataset if all_features[k]}
+        features = {k: all_features[k] for k in dataset if k!='2258277193_586949ec62'}
         return features
 
     # covert a dictionary of clean descriptions to a list of descriptions
@@ -239,7 +241,6 @@ class FeatureExtraction:
         # walk through each image identifier
         for key, desc_list in descriptions.items():
             # walk through each description for the image
-            print('done:',key)
             for desc in desc_list:
                 # encode the sequence
                 seq = self.tokenizer.texts_to_sequences([desc])[0]
