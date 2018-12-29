@@ -422,7 +422,8 @@ class FeatureExtraction:
         self.evaluateBestModel(model)
 
         # load and prepare the test photograph
-        photo = self.extractPhotoFeatures("trial.jpg")
+        self.photoDir = "trial.jpg"
+        photo = self.extractPhotoFeatures()
         description = self.generateDescription(model, photo)
         print(description)
 
