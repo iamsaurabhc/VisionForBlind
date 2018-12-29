@@ -351,12 +351,13 @@ class FeatureExtraction:
         actual, predicted = list(), list()
         # step over the whole set
         for key, desc_list in self.test_descriptions.items():
-            # generate description
-            yhat = self.generateDescription(model, self.test_features[key])
-            # store actual and predicted
-            references = [d.split() for d in desc_list]
-            actual.append(references)
-            predicted.append(yhat.split())
+            if key != '2258277193_586949ec62':
+                # generate description
+                yhat = self.generateDescription(model, self.test_features[key])
+                # store actual and predicted
+                references = [d.split() for d in desc_list]
+                actual.append(references)
+                predicted.append(yhat.split())
         # calculate BLEU score
         print('BLEU-1: %f' % corpus_bleu(actual, predicted, weights=(1.0, 0, 0, 0)))
         print('BLEU-2: %f' % corpus_bleu(actual, predicted, weights=(0.5, 0.5, 0, 0)))
