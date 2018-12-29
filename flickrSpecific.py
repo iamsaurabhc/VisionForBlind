@@ -292,18 +292,18 @@ class FeatureExtraction:
         print('Dataset: %d' % len(train))
         # descriptions
         self.train_descriptions = self.loadCleanDescriptions('descriptions.txt', train)
-        print('Descriptions: train=%d' % len(train_descriptions))
+        print('Descriptions: train=%d' % len(self.train_descriptions))
         # photo features
         self.train_features = self.loadPhotoFeatures('features.pkl', train)
-        print('Photos: train=%d' % len(train_features))
+        print('Photos: train=%d' % len(self.train_features))
         # prepare tokenizer
-        self.tokenizer = self.createTokenizer(train_descriptions)
+        self.tokenizer = self.createTokenizer(self.train_descriptions)
         # save the tokenizer
         dump(self.tokenizer, open('tokenizer.pkl', 'wb'))
         self.vocab_size = len(self.tokenizer.word_index) + 1
         print('Vocabulary Size: %d' % self.vocab_size)
         # determine the maximum sequence length
-        self.max_length = self.maxLength(train_descriptions)
+        self.max_length = self.maxLength(self.train_descriptions)
         print('Description Length: %d' % self.max_length)
         # prepare sequences
         #X1train, X2train, ytrain = self.createSequences(self.tokenizer, self.max_length, train_descriptions, train_features)
@@ -317,10 +317,10 @@ class FeatureExtraction:
         print('Test Dataset: %d' % len(test))
         # descriptions
         self.test_descriptions = self.loadCleanDescriptions('descriptions.txt', test)
-        print('Descriptions: test=%d' % len(test_descriptions))
+        print('Descriptions: test=%d' % len(self.test_descriptions))
         # photo features
         self.test_features = self.loadPhotoFeatures('features.pkl', test)
-        print('Photos: test=%d' % len(test_features))
+        print('Photos: test=%d' % len(self.test_features))
         # prepare sequences
         #X1test, X2test, ytest = self.createSequences(self.tokenizer, self.max_length, test_descriptions, test_features)
         #return sparse.csr_matrix(X1test), sparse.csr_matrix(X2test), sparse.csr_matrix(ytest)
