@@ -40,8 +40,10 @@ class FeatureExtraction:
         self.vocab_size = None
         self.model = None
         self.train = self.loadSet()
-        self.test_descriptions =  self.loadCleanDescriptions('descriptions.txt', self.train)
-        self.test_features = self.loadPhotoFeatures('features.pkl', self.train)
+        self.train_descriptions =  None
+        self.train_features = None
+        self.test_descriptions = None
+        self.test_features = None
 
     # extract features from each photo in the directory
     def extractPhotoFeatures(self):
@@ -289,10 +291,10 @@ class FeatureExtraction:
         train = self.loadSet()
         print('Dataset: %d' % len(train))
         # descriptions
-        train_descriptions = self.loadCleanDescriptions('descriptions.txt', train)
+        self.train_descriptions = self.loadCleanDescriptions('descriptions.txt', train)
         print('Descriptions: train=%d' % len(train_descriptions))
         # photo features
-        train_features = self.loadPhotoFeatures('features.pkl', train)
+        self.train_features = self.loadPhotoFeatures('features.pkl', train)
         print('Photos: train=%d' % len(train_features))
         # prepare tokenizer
         self.tokenizer = self.createTokenizer(train_descriptions)
@@ -304,8 +306,8 @@ class FeatureExtraction:
         self.max_length = self.maxLength(train_descriptions)
         print('Description Length: %d' % self.max_length)
         # prepare sequences
-        X1train, X2train, ytrain = self.createSequences(self.tokenizer, self.max_length, train_descriptions, train_features)
-        return sparse.csr_matrix(X1train), sparse.csr_matrix(X2train), sparse.csr_matrix(ytrain)
+        #X1train, X2train, ytrain = self.createSequences(self.tokenizer, self.max_length, train_descriptions, train_features)
+        #return sparse.csr_matrix(X1train), sparse.csr_matrix(X2train), sparse.csr_matrix(ytrain)
 
     def prepareTestData(self):
         # dev dataset
@@ -320,8 +322,8 @@ class FeatureExtraction:
         self.test_features = self.loadPhotoFeatures('features.pkl', test)
         print('Photos: test=%d' % len(test_features))
         # prepare sequences
-        X1test, X2test, ytest = self.createSequences(self.tokenizer, self.max_length, test_descriptions, test_features)
-        return sparse.csr_matrix(X1test), sparse.csr_matrix(X2test), sparse.csr_matrix(ytest)
+        #X1test, X2test, ytest = self.createSequences(self.tokenizer, self.max_length, test_descriptions, test_features)
+        #return sparse.csr_matrix(X1test), sparse.csr_matrix(X2test), sparse.csr_matrix(ytest)
     
     def testTrainSplit(self, X, y):
         return train_test_split(X, y, test_size=0.15, shuffle=False)
@@ -404,6 +406,8 @@ class FeatureExtraction:
         #self.fitModel()
 
         # load the best model
+        self.prepareTrainData()
+        self.prepareTestData()
         filename = 'model-ep004-loss3.656-val_loss3.900.h5'
         model = load_model(filename)
         # see how the model performs
