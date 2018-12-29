@@ -37,6 +37,8 @@ class FeatureExtraction:
         self.max_length = None
         self.vocab_size = None
         self.model = None
+        self.test_descriptions = None
+        self.test_features = None
 
     # extract features from each photo in the directory
     def extractPhotoFeatures(self):
@@ -312,10 +314,10 @@ class FeatureExtraction:
         test = self.loadSet()
         print('Test Dataset: %d' % len(test))
         # descriptions
-        test_descriptions = self.loadCleanDescriptions('descriptions.txt', test)
+        self.test_descriptions = self.loadCleanDescriptions('descriptions.txt', test)
         print('Descriptions: test=%d' % len(test_descriptions))
         # photo features
-        test_features = self.loadPhotoFeatures('features.pkl', test)
+        self.test_features = self.loadPhotoFeatures('features.pkl', test)
         print('Photos: test=%d' % len(test_features))
         # prepare sequences
         X1test, X2test, ytest = self.createSequences(self.tokenizer, self.max_length, test_descriptions, test_features)
@@ -334,7 +336,57 @@ class FeatureExtraction:
         # fit model
         self.model.fit([X1train, X2train], ytrain, epochs=20, verbose=2, callbacks=[checkpoint], validation_data=([X1test, X2test], ytest))
         print('model fit end')
+    
+    # evaluate the skill of the model
+    def evaluateBestModel(self, model):
+        # evaluate model
+        actual, predicted = list(), list()
+        # step over the whole set
+        for key, desc_list in self.test_descriptions.items():
+            # generate description
+            yhat = generate_desc(model, self.tokenizer, self.test_features[key], self.max_length)
+            # store actual and predicted
+            references = [d.split() for d in desc_list]
+            actual.append(references)
+            predicted.append(yhat.split())
+        # calculate BLEU score
+        print('BLEU-1: %f' % corpus_bleu(actual, predicted, weights=(1.0, 0, 0, 0)))
+        print('BLEU-2: %f' % corpus_bleu(actual, predicted, weights=(0.5, 0.5, 0, 0)))
+        print('BLEU-3: %f' % corpus_bleu(actual, predicted, weights=(0.3, 0.3, 0.3, 0)))
+        print('BLEU-4: %f' % corpus_bleu(actual, predicted, weights=(0.25, 0.25, 0.25, 0.25)))
+    
+    def testNewImage(self):
+        # load and prepare the photograph
+        photo = extract_features("trial.jpg")
+        # generate descriptionṇ
+        description = generate_desc(model, tokenizer, photo, max_length)
+        print(description)
 
+    # generate a description for an image
+    def generateDescription(self, model, photo):
+        # seed the generation process
+        in_text = 'startseq'
+        # iterate over the whole length of the sequence
+        for i in range(self.max_length):
+            # integer encode input sequence
+            sequence = self.tokenizer.texts_to_sequences([in_text])[0]
+            # pad input
+            sequence = pad_sequences([sequence], maxlen=self.max_length)
+            # predict next word
+            yhat = model.predict([photo,sequence], verbose=0)
+            # convert probability to integer
+            yhat = argmax(yhat)
+            # map integer to word
+            word = word_for_id(yhat, self.tokenizer)
+            # stop if we cannot map the word
+            if word is None:
+                break
+            # append as input for generating the next word
+            in_text += ' ' + word
+            # stop if we predict the end of the sequence
+            if word == 'endseq':
+                break
+        return in_text
 
     def run(self):
         starttime = time.time()
@@ -343,10 +395,19 @@ class FeatureExtraction:
         #midtime = time.time()
         #self.extractTextFeatures()
         #print('Time taken for extractTextFeatures: ', time.time() - midtime)
-        finaltime = time.time()
-        self.fitModel()
-        print('Time taken for fitModel: ', time.time() - finaltime)
-        print('Total time taken to run all methods: ', time.time() - starttime)
+        #self.fitModel()
+
+        # load the best model
+        filename = 'model-ep004-loss3.656-val_loss3.900.h5'
+        model = load_model(filename)
+        # see how the model performs
+        self.evaluateBestModel(model)
+
+        # load and prepare the test photograph
+        photo = self.extractPhotoFeatures("trial.jpg")
+        description = self.generateDescription(model, photo)
+        print(description)
+
 
 # extract features from all images
 photoDir = 'Flicker8k_Dataset/'
