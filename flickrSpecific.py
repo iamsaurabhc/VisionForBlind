@@ -388,7 +388,10 @@ class FeatureExtraction:
             sequence = self.tokenizer.texts_to_sequences([in_text])[0]
             # pad input
             sequence = pad_sequences([sequence], maxlen=self.max_length)
+            print(sequence)
             # predict next word
+            print(type(photo))
+            print(type(sequence))
             yhat = model.predict([photo,sequence], verbose=0)
             # convert probability to integer
             yhat = argmax(yhat)
