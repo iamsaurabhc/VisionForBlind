@@ -419,7 +419,7 @@ class FeatureExtraction:
         filename = 'model-ep004-loss3.656-val_loss3.900.h5'
         model = load_model(filename)
         # see how the model performs
-        self.evaluateBestModel(model)
+        #self.evaluateBestModel(model)
 
         # load and prepare the test photograph
         self.photoDir = "/home/saurabh/VisionForBlind/trial.jpg"
