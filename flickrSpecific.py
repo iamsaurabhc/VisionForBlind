@@ -369,6 +369,13 @@ class FeatureExtraction:
         # generate descriptionṇ
         description = generate_desc(model, tokenizer, photo, max_length)
         print(description)
+    
+    # map an integer to a word
+    def word_for_id(self, integer, tokenizer):
+        for word, index in tokenizer.word_index.items():
+            if index == integer:
+                return word
+        return None
 
     # generate a description for an image
     def generateDescription(self, model, photo):
@@ -385,7 +392,7 @@ class FeatureExtraction:
             # convert probability to integer
             yhat = argmax(yhat)
             # map integer to word
-            word = word_for_id(yhat, self.tokenizer)
+            word = self.word_for_id(yhat, self.tokenizer)
             # stop if we cannot map the word
             if word is None:
                 break
