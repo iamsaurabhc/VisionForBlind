@@ -350,7 +350,7 @@ class FeatureExtraction:
         # step over the whole set
         for key, desc_list in self.test_descriptions.items():
             # generate description
-            yhat = generate_desc(model, self.tokenizer, self.test_features[key], self.max_length)
+            yhat = self.generateDescription(model, self.test_features[key])
             # store actual and predicted
             references = [d.split() for d in desc_list]
             actual.append(references)
