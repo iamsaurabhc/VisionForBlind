@@ -422,7 +422,7 @@ class FeatureExtraction:
         #self.evaluateBestModel(model)
 
         # load and prepare the test photograph
-        self.photoDir = "/home/ubuntu/VisionForBlind/trial.jpg"
+        self.photoDir = "/home/ubuntu/VisionForBlind/image/"
         photo = self.extractPhotoFeatures()
         description = self.generateDescription(model, photo)
         print(description)
