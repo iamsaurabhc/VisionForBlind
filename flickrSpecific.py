@@ -39,8 +39,8 @@ class FeatureExtraction:
         self.max_length = None
         self.vocab_size = None
         self.model = None
-        self.test_descriptions = None
-        self.test_features = None
+        self.test_descriptions =  self.loadCleanDescriptions('descriptions.txt', test)
+        self.test_features = self.loadPhotoFeatures('features.pkl', test)
 
     # extract features from each photo in the directory
     def extractPhotoFeatures(self):
